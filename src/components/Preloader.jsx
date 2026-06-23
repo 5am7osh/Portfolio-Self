@@ -29,8 +29,8 @@ export default function Preloader({ onComplete }) {
             }
         });
 
-        // Adding a 3.5 second delay before fading out to allow the SVG animation to play
-        tl.to({}, { duration: 3.5 });
+        // Take exactly 3 seconds to load
+        tl.to({}, { duration: 3.0 });
 
         return () => tl.kill();
     }, [onComplete]);
@@ -40,27 +40,75 @@ export default function Preloader({ onComplete }) {
             ref={containerRef}
             className="fixed inset-0 z-50 flex items-center justify-center bg-[#09090b] overflow-hidden"
         >
+            <style>{`
+                .loader {
+                  width: 0;
+                  height: 4.8px;
+                  display: block; /* changed to block so it can grow freely */
+                  position: relative;
+                  background: #FFF;
+                  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+                  box-sizing: border-box;
+                  animation: animFw 3s linear forwards; /* changed to 3s forwards to match GSAP timeline */
+                }
+                .loader::after,
+                .loader::before {
+                  content: '';
+                  width: 10px;
+                  height: 1px;
+                  background: #FFF;
+                  position: absolute;
+                  top: 9px;
+                  right: -2px;
+                  opacity: 0;
+                  transform: rotate(-45deg) translateX(0px);
+                  box-sizing: border-box;
+                  animation: coli1 0.3s linear infinite;
+                }
+                .loader::before {
+                  top: -4px;
+                  transform: rotate(45deg);
+                  animation: coli2 0.3s linear infinite;
+                }
+
+                @keyframes animFw {
+                  0% {
+                    width: 0;
+                  }
+                  100% {
+                    width: 100%;
+                  }
+                }
+
+                @keyframes coli1 {
+                  0% {
+                    transform: rotate(-45deg) translateX(0px);
+                    opacity: 0.7;
+                  }
+                  100% {
+                    transform: rotate(-45deg) translateX(-45px);
+                    opacity: 0;
+                  }
+                }
+
+                @keyframes coli2 {
+                  0% {
+                    transform: rotate(45deg) translateX(0px);
+                    opacity: 1;
+                  }
+                  100% {
+                    transform: rotate(45deg) translateX(-45px);
+                    opacity: 0.7;
+                  }
+                }
+            `}</style>
+            
             {/* Radial atmosphere */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_50%,rgba(20,20,30,0.8)_0%,rgba(9,9,11,1)_100%)] pointer-events-none" />
 
-            <div className="relative z-10 flex justify-center items-center w-full h-full">
-                {/* 
-                    Using the GIF and applying CSS tricks to "increase resolution" and sharpness.
-                    A combination of contrast, brightness, and crisp-edges helps make blurry
-                    anti-aliased edges in GIFs look much sharper. 
-                */}
-                <img 
-                    src="/handwriting-1782115930735.gif" 
-                    alt="Signature Animation" 
-                    className="w-full max-w-[600px] md:max-w-[800px] h-auto object-contain"
-                    style={{ 
-                        // Invert if it's dark text on light bg, and increase contrast drastically to sharpen edges.
-                        // Also apply a subtle drop shadow to give it a glowing pen effect.
-                        filter: 'invert(1) contrast(200%) brightness(120%) drop-shadow(0 0 10px rgba(255,255,255,0.2))',
-                        imageRendering: 'pixelated', // Forcing pixelated rendering gives the sharpest edge when scaled up immensely
-                        mixBlendMode: 'screen', // This will make the inverted black background completely transparent
-                    }}
-                />
+            {/* Positioned on the left side, spanning the full screen width */}
+            <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 z-10">
+                <span className="loader"></span>
             </div>
         </div>
     );

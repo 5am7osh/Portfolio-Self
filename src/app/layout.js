@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono, Catamaran } from "next/font/google";
 import "./globals.css";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +30,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${catamaran.variable} antialiased`}
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"><ScrollToTop />{children}</body>
     </html>
   );
 }
