@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
@@ -14,22 +14,24 @@ import LimelightNav, { HomeIcon, AboutIcon, WorksIcon, ContactIcon } from '@/com
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export default function Home() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
     const isProgrammaticScrollRef = useRef(false);
     const lenisRef = useRef(null);
 
+    // Synchronously force isLoading=true BEFORE the browser paints the cached layout.
+    // This entirely defeats the Next.js cache 1-second visual flash!
+    useIsomorphicLayoutEffect(() => {
+        if (sessionStorage.getItem('returnToWorks')) {
+            setIsLoading(true);
+        }
+    }, []);
+
     // 1. Initialize Lenis on mount so it's active when child components measure triggers
     useEffect(() => {
-        const hasLoaded = sessionStorage.getItem('hasLoaded');
-        if (hasLoaded) {
-            setIsLoading(false);
-        } else {
-            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-            window.scrollTo(0, 0);
-        }
-
         const lenis = new Lenis({
             duration: 1.6, // slightly slower for cinematic feel
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // smooth exponential easeOut
@@ -40,18 +42,39 @@ export default function Home() {
         });
         lenisRef.current = lenis;
 
+        const hasLoaded = sessionStorage.getItem('hasLoaded');
+        let rafId;
         const returnToWorks = sessionStorage.getItem('returnToWorks');
         
         if (returnToWorks) {
-            // They just returned from a project page -> instantly scroll to Works section
-            const worksSection = document.getElementById('works');
-            if (worksSection) {
-                const targetY = worksSection.getBoundingClientRect().top + window.scrollY;
-                window.scrollTo(0, targetY);
-                lenis.scrollTo(targetY, { immediate: true });
-            }
-            // Clear the flag so normal refresh behavior resumes
-            sessionStorage.removeItem('returnToWorks');
+            setIsLoading(true);
+            setTimeout(() => sessionStorage.removeItem('returnToWorks'), 500);
+            const startTime = Date.now();
+            
+            // Force GSAP to calculate its pin spacers INSTANTLY before we start tracking target coordinates.
+            ScrollTrigger.refresh();
+            
+            const lockScrollToWorks = () => {
+                if (Date.now() - startTime < 1200) {
+                    const worksEl = document.getElementById('works');
+                    if (worksEl) {
+                        const targetY = worksEl.getBoundingClientRect().top + window.scrollY + 50;
+                        window.scrollTo(0, targetY);
+                        if (lenisRef.current) lenisRef.current.scrollTo(targetY, { immediate: true, force: true });
+                    }
+                    rafId = requestAnimationFrame(lockScrollToWorks);
+                } else {
+                    // Once loop finishes, clear the inline styles we injected during the click
+                    const homeContainer = document.getElementById('home-container');
+                    if (homeContainer) {
+                        homeContainer.style.opacity = '';
+                        homeContainer.style.transition = '';
+                    }
+                }
+            };
+            rafId = requestAnimationFrame(lockScrollToWorks);
+            // We do NOT call setIsLoading(false) here! 
+            // The <Preloader /> will finish its animation and call it automatically.
         } else if (!hasLoaded) {
             // Force scroll to top on first visit, aggressively
             const forceTop = () => {
@@ -59,6 +82,12 @@ export default function Home() {
                 lenis.scrollTo(0, { immediate: true });
             };
             requestAnimationFrame(forceTop);
+            sessionStorage.setItem('hasLoaded', 'true');
+            // We do NOT call setIsLoading(false) here! Let the Preloader run.
+        } else {
+            // Normal navigation (no returnToWorks, and hasLoaded is true).
+            // Skip the preloader immediately.
+            setIsLoading(false);
         }
 
         const handleBeforeUnload = () => {
@@ -85,6 +114,7 @@ export default function Home() {
             gsap.ticker.remove(updateTicker);
             lenis.destroy();
             lenisRef.current = null;
+            if (rafId) cancelAnimationFrame(rafId);
         };
     }, []);
 
@@ -198,11 +228,13 @@ export default function Home() {
             </div>
 
             <div
+                id="home-container"
                 className={`relative z-10 flex flex-col w-full transition-opacity duration-1000 ${
                     isLoading ? 'opacity-0' : 'opacity-100'
                 }`}
+                style={{ pointerEvents: isLoading ? 'none' : 'auto' }}
             >
-                <Hero isReady={!isLoading} />
+                <Hero isReady={!isLoading} onExplore={() => scrollToSection('#works', 2)} />
                 <HorizontalJourney />
                 <SystemsBuilt />
                 <Footer />

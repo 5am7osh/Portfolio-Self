@@ -56,7 +56,7 @@ const CircularGallery = React.forwardRef(
         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrollProgress = scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0;
-        rotationRef.current = scrollProgress * 360;
+        rotationRef.current = -scrollProgress * 360; // Reversed direction from left-to-right to right-to-left
         updateDOM();
         scrollTimeoutRef.current = setTimeout(() => setIsScrolling(false), 150);
       };

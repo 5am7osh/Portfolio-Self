@@ -269,7 +269,17 @@ export default function SystemsBuilt() {
                                     ].join(' ')}
                                     onMouseEnter={(e) => handleEnter(project, e)}
                                     onMouseLeave={handleTextLeave}
-                                    onClick={() => sessionStorage.setItem('returnToWorks', 'true')}
+                                    onClick={() => {
+                                        sessionStorage.setItem('returnToWorks', 'true');
+                                        // Synchronously hide the main layout BEFORE Next.js navigates.
+                                        // This ensures the browser's router cache takes a snapshot of an INVISIBLE page,
+                                        // completely destroying the 1-second visual flash on back navigation!
+                                        const homeContainer = document.getElementById('home-container');
+                                        if (homeContainer) {
+                                            homeContainer.style.transition = 'none';
+                                            homeContainer.style.opacity = '0';
+                                        }
+                                    }}
                                     aria-label={`View ${project.name} project`}
                                 >
                                     {project.name}

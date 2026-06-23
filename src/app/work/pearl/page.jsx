@@ -111,7 +111,7 @@ export default function PearlCaseStudy() {
                 scale={1}
                 rotation={0}
                 speed={0.5}
-                colors={["hsla(119, 81%, 27%, 1.00)", "hsla(121, 100%, 52%, 1.00)", "hsla(123, 62%, 36%, 1.00)", "hsla(129, 80%, 17%, 1.00)"]}
+                colors={["hsla(119, 56%, 19%, 1.00)", "hsla(121, 100%, 50%, 1.00)", "hsla(124, 79%, 26%, 1.00)", "hsla(129, 100%, 37%, 1.00)"]}
               />
             )}
           </div>

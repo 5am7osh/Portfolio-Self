@@ -27,7 +27,7 @@ function FloatingPill({ label, color, glowRgb, pillRef }) {
     );
 }
 
-export default function Hero({ isReady }) {
+export default function Hero({ isReady, onExplore }) {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
     const nameRef = useRef(null);
@@ -427,7 +427,11 @@ export default function Hero({ isReady }) {
 
             {/* CTA */}
             <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
-                <div ref={btnWrapperRef} className="relative inline-block w-fit opacity-0 cursor-pointer p-8 -m-8">
+                <div 
+                    ref={btnWrapperRef} 
+                    className="relative inline-block w-fit opacity-0 cursor-pointer p-8 -m-8"
+                    onClick={onExplore}
+                >
                     <button
                         ref={btnContentRef}
                         className="bg-transparent text-xs tracking-[0.2em] text-zinc-300 px-10 py-4 border border-zinc-700 pointer-events-none rounded-sm uppercase"
