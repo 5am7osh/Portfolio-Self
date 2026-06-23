@@ -5,7 +5,9 @@ const cn = (...classes) => classes.filter(Boolean).join(' ');
 
 const CircularGallery = React.forwardRef(
   ({ items, className, radius = 600, autoRotateSpeed = 0.02, onItemHover, onMouseLeave, ...props }, ref) => {
-    const [rotation, setRotation] = useState(0);
+    const rotationRef = useRef(0);
+    const wrapperRef = useRef(null);
+    const itemNodesRef = useRef([]);
     const [isScrolling, setIsScrolling] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [containerWidth, setContainerWidth] = useState(800);
@@ -14,6 +16,26 @@ const CircularGallery = React.forwardRef(
     const animationFrameRef = useRef(null);
     const dragStartX = useRef(0);
     const dragStartRotation = useRef(0);
+    
+    const updateDOM = React.useCallback(() => {
+      if (!wrapperRef.current || !items.length) return;
+      
+      const anglePerItem = 360 / items.length;
+      wrapperRef.current.style.transform = `rotateY(${rotationRef.current}deg)`;
+      
+      const totalRotation = rotationRef.current % 360;
+      items.forEach((_, i) => {
+        const el = itemNodesRef.current[i];
+        if (!el) return;
+        
+        const itemAngle = i * anglePerItem;
+        const relativeAngle = (itemAngle + totalRotation + 360) % 360;
+        const normalizedAngle = Math.abs(relativeAngle > 180 ? 360 - relativeAngle : relativeAngle);
+        const opacity = Math.max(0.85, 1 - (normalizedAngle / 180) * 0.15);
+        
+        el.style.opacity = opacity;
+      });
+    }, [items]);
 
     // Measure container for responsive sizing
     useEffect(() => {
@@ -34,7 +56,8 @@ const CircularGallery = React.forwardRef(
         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
         const scrollProgress = scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0;
-        setRotation(scrollProgress * 360);
+        rotationRef.current = scrollProgress * 360;
+        updateDOM();
         scrollTimeoutRef.current = setTimeout(() => setIsScrolling(false), 150);
       };
       window.addEventListener('scroll', handleScroll, { passive: true });
@@ -42,13 +65,14 @@ const CircularGallery = React.forwardRef(
         window.removeEventListener('scroll', handleScroll);
         if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       };
-    }, []);
+    }, [updateDOM]);
 
     // Auto-rotation
     useEffect(() => {
       const autoRotate = () => {
         if (!isScrolling && !isDragging) {
-          setRotation(prev => prev - autoRotateSpeed);
+          rotationRef.current -= autoRotateSpeed;
+          updateDOM();
         }
         animationFrameRef.current = requestAnimationFrame(autoRotate);
       };
@@ -61,14 +85,15 @@ const CircularGallery = React.forwardRef(
     const handlePointerDown = (e) => {
       setIsDragging(true);
       dragStartX.current = e.clientX;
-      dragStartRotation.current = rotation;
+      dragStartRotation.current = rotationRef.current;
       e.currentTarget.setPointerCapture(e.pointerId);
     };
 
     const handlePointerMove = (e) => {
       if (!isDragging) return;
       const deltaX = e.clientX - dragStartX.current;
-      setRotation(dragStartRotation.current + deltaX * 0.1);
+      rotationRef.current = dragStartRotation.current + deltaX * 0.1;
+      updateDOM();
     };
 
     const handlePointerUp = (e) => {
@@ -108,19 +133,16 @@ const CircularGallery = React.forwardRef(
         {...props}
       >
         <div
+          ref={wrapperRef}
           className="relative w-full h-full"
-          style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d' }}
+          style={{ transformStyle: 'preserve-3d' }}
         >
           {items.map((item, i) => {
             const itemAngle = i * anglePerItem;
-            const totalRotation = rotation % 360;
-            const relativeAngle = (itemAngle + totalRotation + 360) % 360;
-            const normalizedAngle = Math.abs(relativeAngle > 180 ? 360 - relativeAngle : relativeAngle);
-            const opacity = Math.max(0.85, 1 - (normalizedAngle / 180) * 0.15);
-
             return (
               <div
                 key={item.id}
+                ref={el => itemNodesRef.current[i] = el}
                 role="group"
                 aria-label={item.description}
                 className="absolute"
@@ -132,8 +154,10 @@ const CircularGallery = React.forwardRef(
                   top: '50%',
                   marginLeft: `-${cardW / 2}px`,
                   marginTop: `-${cardH / 2}px`,
-                  opacity,
                   transition: 'opacity 0.3s linear',
+                  willChange: 'transform, opacity',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
                 }}
                 onMouseEnter={() => onItemHover?.(item)}
                 onMouseLeave={() => onMouseLeave?.()}

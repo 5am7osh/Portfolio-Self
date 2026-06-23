@@ -44,13 +44,13 @@ export function BlurTextAnimation({
     const startAnimation = () => {
       // Start hidden/blurred then animate in
       setTimeout(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsAnimating(true);
       }, 50);
 
       // Removed looping logic to ensure text stays visible indefinitely after reveal.
     };
 
-    setIsAnimating(false); // Reset immediately on text change
     startAnimation();
 
     return () => {

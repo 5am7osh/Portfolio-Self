@@ -15,21 +15,24 @@ export default function InfiniteScrollGallery({ images }) {
   // Duplicate enough times to fill super-wide screens safely
   const duplicatedImages = Array(8).fill(images).flat();
 
+  const calculateLoopWidth = () => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const items = container.children;
+    if (items.length <= originalCount) return;
+    
+    const firstItem = items[0];
+    const loopItem = items[originalCount];
+    if (firstItem && loopItem) {
+      loopWidth.current = loopItem.getBoundingClientRect().left - firstItem.getBoundingClientRect().left;
+    }
+  };
+
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
 
-    const items = container.children;
-    if (items.length <= originalCount) return;
-
-    // Calculate exact width of one logical loop to avoid gap-stutter
-    const calculateLoopWidth = () => {
-      const firstItem = items[0];
-      const loopItem = items[originalCount];
-      loopWidth.current = loopItem.getBoundingClientRect().left - firstItem.getBoundingClientRect().left;
-    };
-    
-    // Small delay to ensure images are laid out before calculating
+    // Initial calculation
     setTimeout(calculateLoopWidth, 100);
     window.addEventListener('resize', calculateLoopWidth);
 
@@ -112,7 +115,7 @@ export default function InfiniteScrollGallery({ images }) {
                     src={image}
                     alt={`Gallery image ${(index % originalCount) + 1}`}
                     className="w-auto h-full object-contain rounded-2xl pointer-events-none"
-                    loading="lazy"
+                    onLoad={calculateLoopWidth}
                   />
                 </div>
               ))}

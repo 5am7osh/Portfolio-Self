@@ -22,8 +22,13 @@ export default function Home() {
 
     // 1. Initialize Lenis on mount so it's active when child components measure triggers
     useEffect(() => {
-        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-        window.scrollTo(0, 0);
+        const hasLoaded = sessionStorage.getItem('hasLoaded');
+        if (hasLoaded) {
+            setIsLoading(false);
+        } else {
+            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+            window.scrollTo(0, 0);
+        }
 
         const lenis = new Lenis({
             duration: 1.6, // slightly slower for cinematic feel
@@ -35,15 +40,31 @@ export default function Home() {
         });
         lenisRef.current = lenis;
 
-        // Force scroll to top on reload, aggressively
-        const forceTop = () => {
-            window.scrollTo(0, 0);
-            lenis.scrollTo(0, { immediate: true });
-        };
-        requestAnimationFrame(forceTop);
+        const returnToWorks = sessionStorage.getItem('returnToWorks');
+        
+        if (returnToWorks) {
+            // They just returned from a project page -> instantly scroll to Works section
+            const worksSection = document.getElementById('works');
+            if (worksSection) {
+                const targetY = worksSection.getBoundingClientRect().top + window.scrollY;
+                window.scrollTo(0, targetY);
+                lenis.scrollTo(targetY, { immediate: true });
+            }
+            // Clear the flag so normal refresh behavior resumes
+            sessionStorage.removeItem('returnToWorks');
+        } else if (!hasLoaded) {
+            // Force scroll to top on first visit, aggressively
+            const forceTop = () => {
+                window.scrollTo(0, 0);
+                lenis.scrollTo(0, { immediate: true });
+            };
+            requestAnimationFrame(forceTop);
+        }
 
         const handleBeforeUnload = () => {
-            window.scrollTo(0, 0);
+            if (!sessionStorage.getItem('hasLoaded')) {
+                window.scrollTo(0, 0);
+            }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -74,15 +95,18 @@ export default function Home() {
             return;
         }
 
-        // Enable scrolling when loading is complete, and aggressively force scroll to top
+        // Enable scrolling when loading is complete
         lenisRef.current?.start();
         
-        requestAnimationFrame(() => {
-            window.scrollTo(0, 0);
-            if (lenisRef.current) {
-                lenisRef.current.scrollTo(0, { immediate: true });
-            }
-        });
+        if (!sessionStorage.getItem('hasLoaded')) {
+            requestAnimationFrame(() => {
+                window.scrollTo(0, 0);
+                if (lenisRef.current) {
+                    lenisRef.current.scrollTo(0, { immediate: true });
+                }
+            });
+            sessionStorage.setItem('hasLoaded', 'true');
+        }
 
         // Track vertical section transitions to update active tab automatically
         const sections = ['#home', '#about', '#works', '#contact'];

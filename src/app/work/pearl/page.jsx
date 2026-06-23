@@ -1,6 +1,6 @@
 "use client"; // Required for state management and interactive galleries
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from 'next/image';
 import Link from 'next/link';
 import { Warp } from "@paper-design/shaders-react";
@@ -68,42 +68,62 @@ export default function PearlCaseStudy() {
   // State to track the currently hovered B2C image text
   const [activeB2CText, setActiveB2CText] = useState("Interact with the portal to explore the consumer architecture.");
 
+  // Performance optimization: Unmount heavy shader when off-screen
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsHeroVisible(entry.isIntersecting);
+      },
+      { threshold: 0, rootMargin: '0px' }
+    );
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-white text-zinc-900 selection:bg-black selection:text-white pb-32">
 
       {/* 1. Monolithic Hero */}
-      <section className="relative w-full h-screen overflow-hidden bg-white">
+      <section ref={heroRef} className="relative w-full h-screen overflow-hidden bg-white">
 
-        {/* Layer 2: The Shader masked to the text */}
-        <div className="absolute inset-0 z-10 pointer-events-none mix-blend-multiply" style={{ isolation: 'isolate' }}>
-
-          {/* The Shader Canvas */}
-          <div className="absolute inset-0 z-0">
-            <Warp
-              style={{ height: "100%", width: "100%" }}
-              proportion={0.45}
-              softness={1}
-              distortion={0.25}
-              swirl={0.8}
-              swirlIterations={10}
-              shape="checks"
-              shapeScale={0.1}
-              scale={1}
-              rotation={0}
-              speed={1}
-              colors={["#3ba93bff", "#164d16ff", "#0d690dff", "#042804ff"]}
-            />
+        {/* The Shader Canvas (Downsampled 50% to save GPU, then scaled up 2x with CSS) */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div style={{ width: '50%', height: '50%', transform: 'scale(2)', transformOrigin: '0 0' }}>
+            {isHeroVisible && (
+              <Warp
+                style={{ height: "100%", width: "100%" }}
+                proportion={0.45}
+                softness={1}
+                distortion={0.25}
+                swirl={0.8}
+                swirlIterations={3}
+                shape="checks"
+                shapeScale={0.1}
+                scale={1}
+                rotation={0}
+                speed={0.5}
+                colors={["hsla(119, 81%, 27%, 1.00)", "hsla(121, 100%, 52%, 1.00)", "hsla(123, 62%, 36%, 1.00)", "hsla(129, 80%, 17%, 1.00)"]}
+              />
+            )}
           </div>
+        </div>
 
-          {/* The Mask Layer: White background, Black text -> mix-blend-screen -> Canvas inside text, White outside text */}
-          <div className="absolute inset-0 bg-white mix-blend-screen flex items-center justify-center z-10">
-            <div className="relative inline-block mt-20">
-              <h1 className="text-[18vw] leading-none font-black tracking-tighter uppercase text-black">
-                PEARL
-              </h1>
-            </div>
+        {/* The Mask Layer: White background, Black text -> mix-blend-screen -> Canvas inside text, White outside text */}
+        <div className="absolute inset-0 bg-white mix-blend-screen flex items-center justify-center z-10 pointer-events-none">
+          <div className="relative inline-block mt-20">
+            <h1 className="text-[18vw] leading-none font-black tracking-tighter uppercase text-black">
+              PEARL
+            </h1>
           </div>
-
         </div>
 
       </section>
@@ -174,7 +194,7 @@ export default function PearlCaseStudy() {
 
           {/* Sphere Image Grid Container */}
           <div className="w-full relative flex items-center justify-center">
-            <SphereImageGrid 
+            <SphereImageGrid
               images={Array.from({ length: 15 }).map((_, i) => {
                 const screen = b2bScreens[i % b2bScreens.length];
                 return {

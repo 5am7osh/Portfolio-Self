@@ -269,6 +269,7 @@ export default function SystemsBuilt() {
                                     ].join(' ')}
                                     onMouseEnter={(e) => handleEnter(project, e)}
                                     onMouseLeave={handleTextLeave}
+                                    onClick={() => sessionStorage.setItem('returnToWorks', 'true')}
                                     aria-label={`View ${project.name} project`}
                                 >
                                     {project.name}
