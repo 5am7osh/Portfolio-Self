@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
+import Image from 'next/image';
 
 export default function Footer() {
     const buttonRef = useRef(null);
@@ -59,7 +60,7 @@ export default function Footer() {
         <footer id="contact" className="relative w-full min-h-screen bg-zinc-950 flex flex-col justify-between pt-24 pb-8 overflow-hidden z-20">
 
             {/* Structural loop video background for the footer vibe */}
-            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+            <div className="absolute inset-0 z-0 opacity-50 pointer-events-none">
                 <video
                     autoPlay
                     loop
@@ -67,7 +68,7 @@ export default function Footer() {
                     playsInline
                     className="w-full h-full object-cover grayscale mix-blend-screen"
                 >
-                    <source src="/founder-loop.webm" type="video/webm" />
+                    <source src="/Footer Bg.mp4" type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-zinc-950"></div>
             </div>
@@ -82,24 +83,25 @@ export default function Footer() {
                             The vision <span className="text-zinc-500">starts here.</span>
                         </h2>
                         <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-zinc-100 uppercase tracking-tighter leading-[0.9]">
-                            The execution happens at <span className="text-white">The Lead Agents.</span>
+                            The execution happens at&nbsp;
+                            <br />
+                            <span className="text-[#e58a59] whitespace-nowrap">The Lead Agents.</span>
                         </h2>
                     </div>
 
                     {/* Right Column: Magnetic CTA */}
-                    <div className="flex justify-start md:justify-end items-center h-[300px]">
+                    <div className="flex justify-center md:justify-end items-center h-[220px] md:h-[300px]">
                         <a
-                            href="https://theleadagents.co.uk"
+                            href="https://theleadagents.co.uk/contact"
                             target="_blank"
                             rel="noopener noreferrer"
                             ref={buttonRef}
-                            className="relative w-64 h-64 md:w-80 md:h-80 bg-zinc-100 rounded-full flex items-center justify-center cursor-pointer group"
+                            className="relative overflow-hidden group rounded-full w-52 h-52 md:w-80 md:h-80 flex items-center justify-center bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/30 transition-all duration-500 hover:scale-105 cursor-pointer"
                         >
-                            <div ref={textRef} className="flex flex-col items-center justify-center gap-2 pointer-events-none">
-                                <span className="text-zinc-950 font-bold text-xl md:text-2xl uppercase tracking-widest text-center px-8">
-                                    Scale with The Lead Agents
-                                </span>
-                                <ArrowUpRight size={32} className="text-zinc-950 mt-2" />
+                            {/* The Text and Logo Payload */}
+                            <div ref={textRef} className="relative z-20 flex flex-col items-center gap-3 pointer-events-none">
+                                <span className="text-xs md:text-xl tracking-[0.3em] text-zinc-300 font-mono uppercase text-center">Scale With</span>
+                                <img src="/Logo.svg" alt="The Lead Agents Logo" className="w-64 md:w-72" />
                             </div>
                         </a>
                     </div>

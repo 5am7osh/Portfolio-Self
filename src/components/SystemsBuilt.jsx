@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
+import Link from 'next/link';
 
 // ─── Project Data ────────────────────────────────────────────────────────────
 const PROJECTS = [
@@ -10,22 +11,25 @@ const PROJECTS = [
         id: 'localthread',
         name: 'LOCALTHREAD',
         subtitle: 'Hyper-Local Community Platform',
-        media: null,
+        media: '/LT card.mp4',
         accent: 'from-violet-900/60 via-purple-950/80 to-zinc-950',
+        href: '/work/localthread',
     },
     {
         id: 'pearl',
         name: 'PEARL',
         subtitle: 'Service Management SaaS',
-        media: null,
+        media: '/Pearl Card.mp4',
         accent: 'from-sky-900/60 via-blue-950/80 to-zinc-950',
+        href: '/work/pearl',
     },
     {
         id: 'leadagents',
         name: 'THE LEAD AGENTS',
         subtitle: 'Digital Infrastructure & Scale',
-        media: null,
+        media: '/TLA card.mp4',
         accent: 'from-amber-900/60 via-orange-950/80 to-zinc-950',
+        href: 'https://theleadagents.co.uk/',
     },
 ];
 
@@ -36,30 +40,35 @@ function HoverCard({ cardRef, project }) {
     return (
         <div
             ref={cardRef}
-            className="fixed top-0 left-0 pointer-events-none z-[9999] w-[352px] h-[462px] md:w-[440px] md:h-[550px]"
+            className="fixed top-0 left-0 pointer-events-none z-[9999] w-[80vw] md:w-[60vw] max-w-[700px] flex flex-col p-4 md:p-5 backdrop-blur-2xl border border-white/10 bg-white/5 rounded-[2rem] shadow-2xl gap-4"
             style={{ opacity: 0, transform: 'scale(0.85)', willChange: 'transform, opacity' }}
         >
-            <div className="w-full h-full overflow-hidden rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl relative">
-                {/* Gradient fill */}
-                {project && (
-                    <div className={`absolute inset-0 bg-gradient-to-b ${project.accent}`} />
+            {/* The Screen Enclosure */}
+            <div className="w-full aspect-[16/9] rounded-2xl overflow-hidden bg-zinc-950 relative border border-white/5 shadow-inner">
+                {project?.media && (
+                    <video
+                        key={project.id}
+                        src={project.media}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="object-cover w-full h-full absolute inset-0"
+                    />
                 )}
-
-                {/* Inner label */}
-                {project && (
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
-                        <p className="font-mono text-[10px] tracking-[0.25em] text-zinc-400 uppercase mb-1">
-                            {project.subtitle}
-                        </p>
-                        <p className="font-black text-xl text-white uppercase tracking-tighter">
-                            {project.name}
-                        </p>
-                    </div>
-                )}
-
-                {/* Glass rim shimmer */}
-                <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/[0.08] pointer-events-none" />
             </div>
+
+            {/* The Dedicated Text Panel (Clean Glass Area) */}
+            {project && (
+                <div className="flex flex-col items-start px-2 pb-1">
+                    <span className="font-mono text-[10px] md:text-xs tracking-[0.2em] text-zinc-400 uppercase mb-1">
+                        {project.subtitle}
+                    </span>
+                    <h3 className="text-xl md:text-2xl font-black tracking-tighter text-white uppercase">
+                        {project.name}
+                    </h3>
+                </div>
+            )}
         </div>
     );
 }
@@ -136,8 +145,8 @@ export default function SystemsBuilt() {
             // Always track cursor — even when card is hidden
             cursorRef.current = { x: e.clientX, y: e.clientY };
 
-            const cardW = cardRef.current?.offsetWidth || 440;
-            const cardH = cardRef.current?.offsetHeight || 550;
+            const cardW = cardRef.current?.offsetWidth || 700;
+            const cardH = cardRef.current?.offsetHeight || 500;
 
             const padding = 24; // Safe zone from browser edges
             let targetX = e.clientX - cardW / 2;
@@ -178,8 +187,8 @@ export default function SystemsBuilt() {
         // Update cursor ref immediately so scroll logic knows where we are
         cursorRef.current = { x: e.clientX, y: e.clientY };
 
-        const cardW = cardRef.current?.offsetWidth || 440;
-        const cardH = cardRef.current?.offsetHeight || 550;
+        const cardW = cardRef.current?.offsetWidth || 700;
+        const cardH = cardRef.current?.offsetHeight || 500;
 
         const padding = 24;
         let targetX = e.clientX - cardW / 2;
@@ -239,7 +248,7 @@ export default function SystemsBuilt() {
                 />
 
                 {/* ── Project links ──────────────────────────────────────── */}
-                <div className="flex flex-col items-center gap-0 md:gap-2 select-none">
+                <div className="flex flex-col items-center gap-0 md:gap-2 select-none text-center md:text-left">
                     {PROJECTS.map((project, i) => (
                         <div key={project.id} className="relative group">
                             {/* Index ticker */}
@@ -247,19 +256,38 @@ export default function SystemsBuilt() {
                                 0{i + 1}
                             </span>
 
-                            <button
-                                className={[
-                                    'block text-5xl md:text-7xl lg:text-[8rem] font-black uppercase tracking-wide',
-                                    'text-zinc-700 hover:text-zinc-100',
-                                    'transition-colors duration-300 cursor-pointer leading-none',
-                                    'py-3 md:py-4',
-                                ].join(' ')}
-                                onMouseEnter={(e) => handleEnter(project, e)}
-                                onMouseLeave={handleTextLeave}
-                                aria-label={`View ${project.name} project`}
-                            >
-                                {project.name}
-                            </button>
+                            {project.href ? (
+                                <Link
+                                    href={project.href}
+                                    target={project.href.startsWith('http') ? '_blank' : undefined}
+                                    rel={project.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                                    className={[
+                                        'block text-5xl md:text-7xl lg:text-[8rem] font-black uppercase tracking-wide',
+                                        'text-zinc-700 hover:text-zinc-100',
+                                        'transition-colors duration-300 cursor-pointer leading-none',
+                                        'py-3 md:py-4',
+                                    ].join(' ')}
+                                    onMouseEnter={(e) => handleEnter(project, e)}
+                                    onMouseLeave={handleTextLeave}
+                                    aria-label={`View ${project.name} project`}
+                                >
+                                    {project.name}
+                                </Link>
+                            ) : (
+                                <button
+                                    className={[
+                                        'block text-5xl md:text-7xl lg:text-[8rem] font-black uppercase tracking-wide',
+                                        'text-zinc-700 hover:text-zinc-100',
+                                        'transition-colors duration-300 cursor-pointer leading-none',
+                                        'py-3 md:py-4',
+                                    ].join(' ')}
+                                    onMouseEnter={(e) => handleEnter(project, e)}
+                                    onMouseLeave={handleTextLeave}
+                                    aria-label={`View ${project.name} project`}
+                                >
+                                    {project.name}
+                                </button>
+                            )}
 
                             {/* Underline that draws on hover */}
                             <span className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full bg-zinc-100 transition-all duration-500 ease-in-out" />
