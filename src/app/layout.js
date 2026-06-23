@@ -22,9 +22,6 @@ const catamaran = Catamaran({
 export const metadata = {
   title: "Samuel J Prabahar",
   description: "Portfolio of Samuel J Prabahar",
-  icons: {
-    icon: '/favicon.png',
-  },
 };
 
 export default function RootLayout({ children }) {
