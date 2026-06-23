@@ -45,17 +45,19 @@ function HoverCard({ cardRef, project }) {
         >
             {/* The Screen Enclosure */}
             <div className="w-full aspect-[16/9] rounded-2xl overflow-hidden bg-zinc-950 relative border border-white/5 shadow-inner">
-                {project?.media && (
+                {PROJECTS.map((p) => (
                     <video
-                        key={project.id}
-                        src={project.media}
+                        key={p.id}
+                        src={p.media}
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="object-cover w-full h-full absolute inset-0"
+                        className={`object-cover w-full h-full absolute inset-0 transition-opacity duration-500 ease-out ${
+                            project?.id === p.id ? 'opacity-100' : 'opacity-0'
+                        }`}
                     />
-                )}
+                ))}
             </div>
 
             {/* The Dedicated Text Panel (Clean Glass Area) */}
