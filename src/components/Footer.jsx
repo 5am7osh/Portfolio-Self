@@ -128,7 +128,7 @@ export default function Footer() {
                     <a href="https://www.instagram.com/theleadagentshq/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-100 transition-colors">
                         @TheLeadAgentsHQ
                     </a>
-                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-100 transition-colors">
+                    <a href="https://www.linkedin.com/in/samuel-joshua-prabahar/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-100 transition-colors">
                         LinkedIn
                     </a>
                 </div>
